@@ -3,9 +3,8 @@ package com.booleanuk.api.game;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -27,6 +26,38 @@ public class GameController {
     @GetMapping
     public List<Game> getAllGames(){
         return this.gameRepository.findAll();
+    }
+
+    @GetMapping("{id}")
+    public ResponseEntity<Game> getGameById(@PathVariable int id){
+        Game game = null;
+        game = this.gameRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No game with that ID found")
+        );
+        return ResponseEntity.ok(game);
+    }
+
+    @PostMapping
+    public ResponseEntity<Game> createGame(@RequestBody Game game){
+        return new ResponseEntity<Game>(this.gameRepository.save(game), HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<Game> deleteGame(@PathVariable int id){
+        Game gameToDelete = this.gameRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND,"No game with that ID found")
+        );
+        this.gameRepository.delete(gameToDelete);
+        return ResponseEntity.ok(gameToDelete);
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<Game> updateGame(@PathVariable int id, @RequestBody Game game){
+        Game gameToUpdate = this.gameRepository.findById(id).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND,"No game with that ID found")
+        );
+        game.setId(gameToUpdate.getId());
+        return new ResponseEntity<>(this.gameRepository.save(game), HttpStatus.CREATED);
     }
 
 }
